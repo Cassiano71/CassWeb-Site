@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central CassWeb</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- CSS do painel de clientes — caminhos redundantes para garantir carregamento -->
+  <link rel="stylesheet" href="/central/css/dashboard.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <style>
+    /* Fallback crítico — garante visual mesmo se o CSS externo falhar */
+    html, body { margin: 0; background: #010e28; color: #eef2fb; font-family: Inter, "Segoe UI", sans-serif; }
+    .modal-overlay { display: none !important; }
+    .modal-overlay.open { display: flex !important; }
+  </style>
+</head>
+<body>
+  <div class="central-shell">
+
+    <header class="central-header">
+      <div class="container central-header-inner">
+        <a href="/" class="central-brand">
+          <img src="/assets/logo-crop.png" alt="CassWeb">
+        </a>
+        <div class="central-header-actions">
+          <button class="btn btn-primary btn-sm" id="btnNewClient" type="button">+ Adicionar cliente</button>
+          <button class="btn btn-ghost btn-sm" id="btnLogout" type="button">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="central-main">
+      <div class="container">
+
+        <div class="page-intro">
+          <span class="hero-badge"><span class="dot"></span> Painel administrativo</span>
+          <h1>Central <span class="text-gradient">CassWeb</span></h1>
+          <p>Gerencie os sites dos seus clientes. Cadastre, suspenda ou reative quando precisar.</p>
+        </div>
+
+        <div class="auth-banner" id="authBanner" hidden>
+          Para carregar e salvar clientes, faça login.
+          <a href="/central/login">Ir para login</a>
+        </div>
+
+        <section class="stats-grid" aria-label="Resumo">
+          <article class="stat-card">
+            <span class="stat-label">Clientes</span>
+            <strong class="stat-value" id="statClientes">—</strong>
+          </article>
+          <article class="stat-card stat-card--active">
+            <span class="stat-label">Ativos</span>
+            <strong class="stat-value" id="statAtivos">—</strong>
+          </article>
+          <article class="stat-card stat-card--suspended">
+            <span class="stat-label">Suspensos</span>
+            <strong class="stat-value" id="statSuspensos">—</strong>
+          </article>
+        </section>
+
+        <section class="clients-section">
+          <div class="clients-toolbar">
+            <h2>Lista de clientes</h2>
+            <div class="filters" role="tablist" aria-label="Filtrar clientes">
+              <button class="filter-btn active" data-filter="all" type="button">Todos</button>
+              <button class="filter-btn" data-filter="ATIVO" type="button">Ativos</button>
+              <button class="filter-btn" data-filter="SUSPENSO" type="button">Suspensos</button>
+            </div>
+          </div>
+
+          <div class="clients-list" id="clientsList">
+            <div class="empty-state">Carregando clientes...</div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal cadastro / edição -->
+  <div class="modal-overlay" id="formModal" aria-hidden="true" hidden>
+    <div class="modal" role="dialog" aria-labelledby="formModalTitle">
+      <h3 id="formModalTitle">Adicionar cliente</h3>
+      <p class="modal-desc">Preencha os dados do site. O CLIENT_ID deve ser igual ao configurado no site do cliente.</p>
+      <div class="form-error" id="formError" role="alert"></div>
+      <form id="clientForm">
+        <input type="hidden" id="clientDbId">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nome">Nome da empresa</label>
+            <input type="text" id="nome" required maxlength="255" placeholder="Ex: Padaria do João">
+          </div>
+          <div class="form-group">
+            <label for="projeto">Nome do projeto</label>
+            <input type="text" id="projeto" required maxlength="255" placeholder="Ex: Site institucional">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="url">URL do site</label>
+          <input type="url" id="url" required placeholder="https://exemplo.com.br">
+        </div>
+        <div class="form-group">
+          <label for="client_id">CLIENT_ID</label>
+          <input type="text" id="client_id" required pattern="[a-zA-Z0-9_-]{3,100}" maxlength="100" placeholder="Ex: padaria_joao">
+        </div>
+        <div class="form-group">
+          <label for="descricao">Descrição <span class="optional">(opcional)</span></label>
+          <textarea id="descricao" rows="2" maxlength="2000" placeholder="Observações sobre o cliente"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="status">Status inicial</label>
+          <select id="status" class="form-select">
+            <option value="ATIVO">ATIVO</option>
+            <option value="SUSPENSO">SUSPENSO</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="btnCancelForm">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btnSaveClient">Salvar cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal confirmação -->
+  <div class="modal-overlay" id="confirmModal" aria-hidden="true" hidden>
+    <div class="modal modal--sm" role="dialog" aria-labelledby="confirmTitle">
+      <h3 id="confirmTitle">Confirmar</h3>
+      <p class="confirm-message" id="confirmMessage"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="btnConfirmCancel">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btnConfirmOk">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/central/js/central.js"></script>
+  <script src="js/central.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "redirects": [
+    { "source": "/central", "destination": "/central/index.html", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/central/login", "destination": "/central/login.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/client/status",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "cassweb-site",
+  "version": "2.0.0",
+  "description": "Site institucional CassWeb com Central Administrativa",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "node scripts/dev-server.js",
+    "dev:vercel": "vercel dev",
+    "migrate": "node scripts/migrate.js",
+    "create-admin": "node scripts/create-admin.js",
+    "admin:password": "node scripts/update-admin-password.js",
+    "admin:add": "node scripts/add-admin.js",
+    "admin:remove": "node scripts/remove-admin.js",
+    "admin:list": "node scripts/list-admins.js",
+    "admin:username": "node scripts/update-admin-username.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "iron-session": "^8.0.4",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "vercel": "^39.4.0"
+  }
+}
