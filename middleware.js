@@ -2,6 +2,11 @@ export const config = {
   matcher: ['/central', '/central/:path*'],
 };
 
+function hasAdminSession(request) {
+  const cookies = request.headers.get('cookie') || '';
+  return cookies.includes('cassweb_admin_session=');
+}
+
 export default function middleware(request) {
   const { pathname } = new URL(request.url);
 
@@ -14,9 +19,7 @@ export default function middleware(request) {
   if (isPublic) return;
 
   if (pathname === '/central' || pathname.startsWith('/central/')) {
-    const sessionCookie = request.cookies.get('cassweb_admin_session');
-
-    if (!sessionCookie) {
+    if (!hasAdminSession(request)) {
       return Response.redirect(new URL('/central/login', request.url), 302);
     }
   }
