@@ -74,6 +74,7 @@ body{
   height: 100%;
   object-fit: cover;
   object-position: center;
+  transform: translateZ(0);
 }
 
 /* Light overlay — readability without softening the image */
@@ -84,7 +85,7 @@ body::after{
   z-index: -2;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(1, 14, 40, 0.18) 0%, rgba(1, 14, 40, 0.28) 50%, rgba(1, 14, 40, 0.34) 100%);
+    linear-gradient(180deg, rgba(1, 14, 40, 0.12) 0%, rgba(1, 14, 40, 0.2) 50%, rgba(1, 14, 40, 0.26) 100%);
 }
 
 main{

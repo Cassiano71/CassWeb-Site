@@ -85,7 +85,7 @@
           <h3>${escapeHtml(c.nome)}</h3>
           <p class="client-meta">${escapeHtml(c.projeto)}</p>
           <span class="client-id">${escapeHtml(c.client_id)}</span>
-          <a class="client-url" href="${escapeAttr(c.url)}" target="_blank" rel="noopener">${escapeHtml(c.url)}</a>
+          <a class="client-url" href="${escapeAttr(safeHttpUrl(c.url))}" target="_blank" rel="noopener">${escapeHtml(c.url)}</a>
         </div>
         <div class="client-side">
           <span class="status-badge ${c.status === 'ATIVO' ? 'ativo' : 'suspenso'}">${c.status}</span>
@@ -99,6 +99,16 @@
         </div>
       </article>
     `).join('');
+  }
+
+  function safeHttpUrl(url) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.toString();
+      }
+    } catch (_) { /* ignore */ }
+    return '#';
   }
 
   function escapeHtml(str) {

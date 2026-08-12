@@ -109,7 +109,20 @@ async function handleApi(req, res, url) {
 }
 
 function serveStatic(req, res, pathname) {
-  let filePath = path.join(ROOT, pathname.replace(/^\//, ''));
+  const rootResolved = path.resolve(ROOT);
+  const relative = pathname.replace(/^\/+/, '');
+  if (relative.includes('..')) {
+    res.writeHead(403, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end('<h1>403 — Acesso negado</h1>');
+    return;
+  }
+
+  let filePath = path.resolve(ROOT, relative);
+  if (filePath !== rootResolved && !filePath.startsWith(rootResolved + path.sep)) {
+    res.writeHead(403, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end('<h1>403 — Acesso negado</h1>');
+    return;
+  }
 
   if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
     filePath = path.join(filePath, 'index.html');

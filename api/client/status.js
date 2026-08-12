@@ -3,10 +3,10 @@ import {
   sendJson,
   methodNotAllowed,
   badRequest,
-  notFound,
   serverError,
 } from '../../lib/auth.js';
 import { validateClientId } from '../../lib/validators.js';
+import { getClientIp, rateLimit } from '../../lib/rate-limit.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,6 +24,11 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
 
   try {
+    const ip = getClientIp(req);
+    if (!rateLimit(`client-status:${ip}`, { windowMs: 60_000, max: 60 })) {
+      return sendJson(res, 429, { error: 'Muitas requisições. Tente novamente em instantes.' });
+    }
+
     const url = new URL(req.url, 'http://localhost');
     const clientId = url.searchParams.get('client_id')?.trim();
 
@@ -38,7 +43,7 @@ export default async function handler(req, res) {
     );
 
     if (result.rowCount === 0) {
-      return notFound(res, 'Cliente não encontrado.');
+      return sendJson(res, 200, { status: 'SUSPENSO' });
     }
 
     sendJson(res, 200, { status: result.rows[0].status });

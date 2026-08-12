@@ -1,14 +1,14 @@
 import { query } from '../../lib/db.js';
-import { verifyPassword } from '../../lib/password.js';
+import { verifyPassword, DUMMY_PASSWORD_HASH } from '../../lib/password.js';
 import {
   getSession,
   readJsonBody,
   sendJson,
   methodNotAllowed,
-  badRequest,
   serverError,
 } from '../../lib/auth.js';
 import { validateUsername } from '../../lib/validators.js';
+import { getClientIp, rateLimit } from '../../lib/rate-limit.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,13 +16,19 @@ export default async function handler(req, res) {
   }
 
   try {
+    const ip = getClientIp(req);
+    if (!rateLimit(`login:${ip}`, { windowMs: 60_000, max: 10 })) {
+      return sendJson(res, 429, { error: 'Muitas tentativas. Aguarde um minuto.' });
+    }
+
     const body = await readJsonBody(req);
     const username = body.username?.trim();
     const password = body.password;
 
     const usernameError = validateUsername(username);
     if (usernameError || !password) {
-      return badRequest(res, 'Usuário ou senha inválidos.');
+      await verifyPassword(password || '', DUMMY_PASSWORD_HASH);
+      return sendJson(res, 401, { error: 'Credenciais incorretas.' });
     }
 
     const result = await query(
@@ -30,14 +36,13 @@ export default async function handler(req, res) {
       [username],
     );
 
-    if (result.rowCount === 0) {
-      return sendJson(res, 401, { error: 'Credenciais incorretas.' });
-    }
-
     const admin = result.rows[0];
-    const valid = await verifyPassword(password, admin.password_hash);
+    const valid = await verifyPassword(
+      password,
+      admin?.password_hash || DUMMY_PASSWORD_HASH,
+    );
 
-    if (!valid) {
+    if (result.rowCount === 0 || !valid) {
       return sendJson(res, 401, { error: 'Credenciais incorretas.' });
     }
 

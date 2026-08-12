@@ -4,7 +4,17 @@ export const config = {
 
 function hasAdminSession(request) {
   const cookies = request.headers.get('cookie') || '';
-  return cookies.includes('cassweb_admin_session=');
+  const match = cookies.match(/(?:^|;\s*)cassweb_admin_session=([^;]*)/);
+  if (!match) return false;
+
+  let value = match[1].trim();
+  try {
+    value = decodeURIComponent(value);
+  } catch {
+    return false;
+  }
+
+  return value.startsWith('Fe26.') && value.length >= 80;
 }
 
 export default function middleware(request) {

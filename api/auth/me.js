@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     );
 
     if (result.rowCount === 0) {
-      session.destroy();
+      await session.destroy();
       return unauthorized(res, 'Sessão inválida.');
     }
 
